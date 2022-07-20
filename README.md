@@ -1,2 +1,2 @@
 # d3d11project
-got how do I use git
+god how do I use git
