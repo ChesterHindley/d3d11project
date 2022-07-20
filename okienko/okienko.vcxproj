@@ -24,6 +24,7 @@
     <ProjectGuid>{a8112556-9e70-42b4-9704-08d0f883cca4}</ProjectGuid>
     <RootNamespace>okienko</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>d3d11project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
