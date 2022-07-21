@@ -14,11 +14,12 @@ public:
 	void bindIndexBuffer(ID3D11Buffer* buffer);
 
 	template<class T>
-	void bindVertexBuffer(T* vertices, ID3D11Buffer* buffer)
+	void bindVertexBuffer(T* vertices, ID3D11Buffer* buffer)  // pls make it unneccessary to pass T*, take it from created vertex buffer
 	{
 		// needs to be created with a ID3D11Device::CreateBuffer
 		const UINT stride = sizeof(T);
-		devContext->IAGetVertexBuffers(0, 1, buffer, stride, 0);
+		const UINT offset = 0;
+		devContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
 	}
 	
 	 Microsoft::WRL::Details::ComPtrRef<Microsoft::WRL::ComPtr<ID3D11DeviceContext>> operator&();

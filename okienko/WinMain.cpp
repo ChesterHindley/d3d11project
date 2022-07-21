@@ -51,6 +51,18 @@ int WinMain(
 
 	const FLOAT color[4] = { 0,0,0.5,1 };
 
+	struct Vertex { float x; float y; };
+	 std::vector<Vertex> vertices {
+		{-0.5,-0.5},{0,0.5},{0.5,-0.5}
+	};
+	 std::vector<int> indices = { 0,1,2 };
+	 ID3D11Buffer* vBuffer = nullptr;
+	 ID3D11Buffer* indexBuffer = nullptr;
+	 dev.createVertexBuffer(vertices, vBuffer);
+	 dev.createIndexBuffer(indices, indexBuffer);
+	 devContext.bindIndexBuffer(indexBuffer);
+	 devContext.bindVertexBuffer(vertices.data(), vBuffer);
+	 devContext.setTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
 
 	Timer t;
@@ -66,31 +78,16 @@ int WinMain(
 	
 	auto dt = t.peek();
 	devContext.ChangeColor(dev.getRenderTargetView().Get(), 0.5, 0.5, 0.2);
-	swapChain->Present(0, 0); // TODO
-
-
+	swapChain.finishDrawing();
 
 	}
-	//ID3D11Buffer* vertexBuffer;
-
-	//struct Vertex { float x; float y; };
-	// Vertex vertices[3] = {
-	//	{-0.5,-0.5},{0,0.5},{0.5,-0.5}
-	//};
-	//
-	//const D3D11_BUFFER_DESC vBufDesc = { sizeof(vertices),D3D11_USAGE_DEFAULT,D3D11_BIND_VERTEX_BUFFER,0,0,sizeof(Vertex) };
-	//D3D11_SUBRESOURCE_DATA subData= {};
-	//subData.pSysMem = vertices;
-	//dev->CreateBuffer(&vBufDesc, &subData, &vertexBuffer); //done
-	//const UINT stride = sizeof(Vertex);
-	//const UINT offset = 0u;
-	//devContext->IASetVertexBuffers(0, 1, &vertexBuffer,&stride,&offset);  //done
-	//devContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);  //done
-	//devContext->IASetIndexBuffer() //done
-	//devContext->IASetInputLayout  //done
 
 
-//	backBuffer->Release();
 
-	return 0;
+
+
+
+
+	
+	 return 0;
 }

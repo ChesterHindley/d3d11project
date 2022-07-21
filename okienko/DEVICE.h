@@ -7,15 +7,31 @@ class DEVICE
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr< ID3D11RenderTargetView> renderTargetView;
 private:
-	HRESULT createBuffer(D3D11_BUFFER_DESC* bdc, void* data, __out ID3D11Buffer* buffer);
+	HRESULT createBuffer(D3D11_BUFFER_DESC* bdc, void* data, __out ID3D11Buffer*& buffer);
 public:
-	HRESULT createIndexBuffer(std::vector<int>* data,__out ID3D11Buffer* indexBuffer);  // could write own class for indexBuffer and vertexBuffer
-	HRESULT createVertexBuffer(std::vector<double>* data, __out ID3D11Buffer* vertexBuffer); 
+	HRESULT createIndexBuffer(std::vector<int>& data,__out ID3D11Buffer*& indexBuffer);  // could write own class for indexBuffer and vertexBuffer
 	HRESULT CreateRenderTargetView(ID3D11Resource* backBuffer);
 	ID3D11Device* operator->();
 	Microsoft::WRL::Details::ComPtrRef<Microsoft::WRL::ComPtr<ID3D11Device>> operator&();
 	ID3D11Device** GetAddressOf();
 
 	Microsoft::WRL::ComPtr< ID3D11RenderTargetView>& getRenderTargetView();
+
+	template<class T>
+	HRESULT createVertexBuffer(std::vector<T>& data, __out ID3D11Buffer*& vertexBuffer)
+	{
+		D3D11_BUFFER_DESC bdc = {};
+		bdc.ByteWidth = data.size();//  Size of the buffer in bytes.
+		bdc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
+		bdc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_VERTEX_BUFFER;
+		bdc.CPUAccessFlags = 0;
+		bdc.MiscFlags = 0;
+		bdc.StructureByteStride = sizeof(T);
+
+		return createBuffer(&bdc, data.data(), vertexBuffer);
+	}
+
+
+
 };
 
