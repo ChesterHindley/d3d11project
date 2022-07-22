@@ -60,7 +60,7 @@ int WinMain(
 
 	struct Vertex { float x; float y; };
 	 std::vector<Vertex> vertices {
-		{-0.5,-0.5},{0,0.5},{0.5,-0.5}
+		{-0.5,-0.5},{0,0.5},{0.5,-0.5},
 	};
 	 std::vector<int> indices = { 0,1,2 };
 	 ID3D11Buffer* vBuffer = nullptr;
@@ -109,13 +109,13 @@ int WinMain(
 		PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE);
 			TranslateMessage(&msg);
 			DispatchMessage(&msg); // send messsage to windows function
-		if (msg.message == WM_QUIT)
-			break;
+			if (msg.message == WM_QUIT)
+				break;
 
 	
 	auto dt = t.peek();
 	devContext.ChangeColor(dev.getRenderTargetView().Get(), cos(dt), 0.5f, 0.2f);
-	devContext->Draw(3, 0);  // not my wrapper TODO
+	devContext->Draw(vertices.size(), 0);  // not my wrapper TODO
 	swapChain.finishDrawing();
 
 	}
