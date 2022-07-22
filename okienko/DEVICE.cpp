@@ -13,7 +13,7 @@ HRESULT DEVICE::createBuffer(D3D11_BUFFER_DESC* bdc, void* data, __out ID3D11Buf
 HRESULT DEVICE::createIndexBuffer(std::vector<int>& data, __out ID3D11Buffer*& indexBuffer)  // possible to do with std::span (recomendation from c++ together)
 {
     D3D11_BUFFER_DESC bdc = {};
-    bdc.ByteWidth = data.size();//  Size of the buffer in bytes.
+    bdc.ByteWidth = (UINT)data.size();//  Size of the buffer in bytes.
     bdc.Usage = D3D11_USAGE::D3D11_USAGE_DEFAULT;
     bdc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_INDEX_BUFFER;
     bdc.CPUAccessFlags = 0;

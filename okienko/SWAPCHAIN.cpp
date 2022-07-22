@@ -32,6 +32,8 @@ Microsoft::WRL::ComPtr<ID3D11Resource>& SWAPCHAIN::getBackBuffer()
 
 HRESULT SWAPCHAIN::finishDrawing()
 {
+
+    
    auto res = swapChain->Present(1,0);
    if (res != S_OK) throw "Failed to present";
    return res;
