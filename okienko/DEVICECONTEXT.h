@@ -10,9 +10,9 @@ private:
 public:
 	void ChangeColor(ID3D11RenderTargetView* pRenderTargetView , float r, float g, float b);
 	void setTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
-	void setInputLayout(ID3D11InputLayout* inputLayout);
+	void bindInputLayout(ID3D11InputLayout* inputLayout);
 	void bindIndexBuffer(ID3D11Buffer* buffer);
-
+	void ConstantBuffer();
 	template<class T>
 	void bindVertexBuffer(T* vertices, ID3D11Buffer* buffer)  // pls make it unneccessary to pass T*, take it from created vertex buffer
 	{

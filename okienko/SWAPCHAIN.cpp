@@ -32,9 +32,7 @@ Microsoft::WRL::ComPtr<ID3D11Resource>& SWAPCHAIN::getBackBuffer()
 
 HRESULT SWAPCHAIN::finishDrawing()
 {
-
-    
    auto res = swapChain->Present(1,0);
-   if (res != S_OK) throw "Failed to present";
+   if (res != S_OK && res != DXGI_STATUS_OCCLUDED) throw "Failed to present"; // TODO
    return res;
 }

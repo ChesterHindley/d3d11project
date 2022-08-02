@@ -1,11 +1,19 @@
 struct Vertex
 {
-	float x;
-	float y;
+	float3 color : COLOR;
+	float4 v : SV_POSITION;
 };
 
-
-float4 main( float2 pos : POSITION ) : SV_POSITION
+cbuffer buf
 {
-	return float4(pos,0.0f,1.0f);
+	matrix transform;
+
+};
+
+Vertex main( float2 pos : POSITION,float3 color : COLOR )
+{
+	Vertex v;
+	v.v = mul(float4(pos, 0.0f, 1.0f),transform);
+	v.color = color;
+	return v;
 }

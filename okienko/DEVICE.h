@@ -32,6 +32,8 @@ public:
 	}
 
 
+	HRESULT createConstantBuffer(void* data, std::size_t size, __out ID3D11Buffer*& constantBuffer);
+
 
 };
 

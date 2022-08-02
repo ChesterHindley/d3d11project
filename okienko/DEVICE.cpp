@@ -51,3 +51,17 @@ HRESULT DEVICE::CreateRenderTargetView(ID3D11Resource* backBuffer)
  {
      return renderTargetView;
  }
+
+
+ HRESULT DEVICE::createConstantBuffer(void* data, std::size_t size, __out ID3D11Buffer*& constantBuffer)
+ {
+     D3D11_BUFFER_DESC bdc = {};
+     bdc.ByteWidth = size;
+     bdc.Usage = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
+     bdc.BindFlags = D3D11_BIND_FLAG::D3D11_BIND_CONSTANT_BUFFER;
+     bdc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+     bdc.MiscFlags = 0;
+     bdc.StructureByteStride = 0;
+
+     return createBuffer(&bdc, data, constantBuffer);
+ }

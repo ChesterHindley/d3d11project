@@ -34,7 +34,7 @@ void DEVICECONTEXT::bindIndexBuffer(ID3D11Buffer* buffer)
 	return devContext.GetAddressOf();
 }
 
-void DEVICECONTEXT::setInputLayout(ID3D11InputLayout* inputLayout)
+void DEVICECONTEXT::bindInputLayout(ID3D11InputLayout* inputLayout)
 {
 	// needs to be created with device ID3D11Device::CreateInputLayout
 	devContext->IASetInputLayout(inputLayout);

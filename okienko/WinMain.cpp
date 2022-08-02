@@ -2,15 +2,18 @@
 #include "Window.h"
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <DirectXMath.h>
 #include "Timer.h"
 #include "DEVICE.h"
 #include "DEVICECONTEXT.h"
 #include "SWAPCHAIN.h"
 #include "SHADER.h"
+
 #pragma comment(lib,"D3D11.lib")
 
 
 namespace wrl = Microsoft::WRL;
+namespace dx = DirectX;
 
 int WinMain(
 	 HINSTANCE hInstance,
@@ -20,11 +23,7 @@ int WinMain(
 )
 {
 	const int height = 900;
-	const int width = 1600;
-
-	
-	
-
+	const int width = 900;
 
 
 	Window w(hInstance,height,width);
@@ -58,11 +57,11 @@ int WinMain(
 
 	const FLOAT color[4] = { 0,0,0.5,1 };
 
-	struct Vertex { float x; float y; };
+	struct Vertex { float x; float y; float r; float g; float b; };
 	 std::vector<Vertex> vertices {
-		{-0.5,-0.5},{0,0.5},{0.5,-0.5},
+		{-0.5,-0.5,1,0,0},{0,0.5,0,1,0},{0.5,-0.5,0,0,1},
 	};
-	 std::vector<int> indices = { 0,1,2 };
+	 //  std::vector<int> indices = { 0,1,2 };
 	 ID3D11Buffer* vBuffer = nullptr;
 	 ID3D11Buffer* indexBuffer = nullptr;
 	 dev.createVertexBuffer(vertices, vBuffer);
@@ -74,11 +73,11 @@ int WinMain(
 	 SHADER<ID3D11VertexShader> vertexShader("VertexShader.cso");
 	 SHADER<ID3D11PixelShader> pixelShader("PixelShader.cso");
 
-	 auto res = dev->CreateVertexShader(vertexShader.data(), vertexShader.getSize(), NULL, vertexShader.GetAddressOf());
+	 dev->CreateVertexShader(vertexShader.data(), vertexShader.getSize(), nullptr, vertexShader.GetAddressOf());
 	 devContext->VSSetShader(vertexShader.getShader().Get(), nullptr, 0);
 
 	 
-	 res = dev->CreatePixelShader(pixelShader.data(), pixelShader.getSize(), nullptr, pixelShader.GetAddressOf());
+	 dev->CreatePixelShader(pixelShader.data(), pixelShader.getSize(), nullptr, pixelShader.GetAddressOf());
 	 devContext->PSSetShader(pixelShader.getShader().Get(), nullptr, 0);
 	 
 	 devContext->OMSetRenderTargets(1, dev.getRenderTargetView().GetAddressOf(), nullptr);
@@ -95,12 +94,19 @@ int WinMain(
 	 ID3D11InputLayout* inputLayout;
 	 const D3D11_INPUT_ELEMENT_DESC idc[] =
 	 {
-		 {"POSITION",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0}
+		 {"POSITION",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
+		 {"COLOR",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0}
 	 };
-	 
-		 dev->CreateInputLayout(idc, 1, vertexShader.data(), vertexShader.getSize(), &inputLayout);
-		 devContext->IASetInputLayout(inputLayout);
+		 auto res = dev->CreateInputLayout(idc, std::size(idc), vertexShader.data(), vertexShader.getSize(), &inputLayout);  //TODO
+		 devContext.bindInputLayout(inputLayout); 
 
+
+		 struct ConstantBuffer
+		 {
+			 dx::XMMATRIX transform;
+		 };
+
+		 ConstantBuffer transform = {dx::XMMatrixScaling(3 / 4.f,1,1) };
 
 	Timer t;
 	MSG msg = { };
@@ -112,17 +118,23 @@ int WinMain(
 			if (msg.message == WM_QUIT)
 				break;
 
-	
-	auto dt = t.peek();
-	devContext.ChangeColor(dev.getRenderTargetView().Get(), cos(dt), 0.5f, 0.2f);
-	devContext->Draw(vertices.size(), 0);  // not my wrapper TODO
-	swapChain.finishDrawing();
+		 ID3D11Buffer* cBuffer;
+		 dev.createConstantBuffer(reinterpret_cast<void*>(& transform),sizeof(transform), cBuffer);
+		 devContext->VSSetConstantBuffers(0, 1, &cBuffer);
+			auto dt = t.peek();
+			transform = { dx::XMMatrixRotationZ(dt) * dx::XMMatrixScaling(3 / 4.f,1,1) };
+			devContext.ChangeColor(dev.getRenderTargetView().Get(), cos(dt), 0.5f, 0.2f);
+			devContext->Draw(vertices.size(), 0);  // not my wrapper TODO
+			swapChain.finishDrawing();
+			cBuffer->Release();
 
 	}
 
 
 	vBuffer->Release();
+	inputLayout->Release();
 	//indexBuffer->Release();
+
 
 
 
