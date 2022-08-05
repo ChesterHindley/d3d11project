@@ -12,7 +12,10 @@ public:
 	void setTopology(D3D11_PRIMITIVE_TOPOLOGY topology);
 	void bindInputLayout(ID3D11InputLayout* inputLayout);
 	void bindIndexBuffer(ID3D11Buffer* buffer);
-	void ConstantBuffer();
+	//void bindConstantBuffer(); // ??
+	HRESULT mapResource(ID3D11Resource* resource, D3D11_MAPPED_SUBRESOURCE* mappedSubRes);  // D3D11_MAP_WRITE_DISCARD,
+	void unmapResource(ID3D11Resource* resource);
+
 	template<class T>
 	void bindVertexBuffer(T* vertices, ID3D11Buffer* buffer)  // pls make it unneccessary to pass T*, take it from created vertex buffer
 	{

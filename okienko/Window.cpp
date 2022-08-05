@@ -1,13 +1,21 @@
 #include "Window.h"
 
-LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)  //not encapsulated who cares just don't call this pls xdd
 {
 
+	char test;
 	switch (uMsg)
 	{
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+
+	case WM_CHAR:
+		test = wParam;
+		
+
+
+
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

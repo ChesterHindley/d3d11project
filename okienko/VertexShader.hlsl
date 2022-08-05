@@ -10,10 +10,10 @@ cbuffer buf
 
 };
 
-Vertex main( float2 pos : POSITION,float3 color : COLOR )
+Vertex main( float3 pos : POSITION,float3 color : COLOR )
 {
 	Vertex v;
-	v.v = mul(float4(pos, 0.0f, 1.0f),transform);
+	v.v = mul(float4(pos, 1.0f),transform);
 	v.color = color;
 	return v;
 }

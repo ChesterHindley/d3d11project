@@ -41,32 +41,37 @@ int WinMain(
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapChainDesc.Flags = 0;
 
-	//wrl::ComPtr< ID3D11Device> dev;
 	DEVICE dev;
-	//wrl::ComPtr < ID3D11DeviceContext> devContext;
 	DEVICECONTEXT devContext;
-	//wrl::ComPtr < IDXGISwapChain> swapChain;
 	SWAPCHAIN swapChain;
-	
 	auto check = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_DEBUG,NULL,0,D3D11_SDK_VERSION,&swapChainDesc,swapChain.GetAddressOf(), dev.GetAddressOf(), NULL, devContext.GetAddressOf());
 	
 	swapChain.initialiseBackBuffer();
 	
+	dev.CreateRenderTargetView(swapChain.getBackBuffer().Get());  //bruh what is this 
 
-	dev.CreateRenderTargetView(swapChain.getBackBuffer().Get());
+	const FLOAT color[4] = { 0,0,0.5,1 }; // what is this for
 
-	const FLOAT color[4] = { 0,0,0.5,1 };
-
-	struct Vertex { float x; float y; float r; float g; float b; };
+	struct Vertex { float x; float y; float z; float r; float g; float b; };
 	 std::vector<Vertex> vertices {
-		{-0.5,-0.5,1,0,0},{0,0.5,0,1,0},{0.5,-0.5,0,0,1},
+		{-0.5,-0.5,0.5,1,0,0},
+		 {0,0.5,0,0,1,0},
+		 {0.5,-0.5,0.5,0,0,1},
+		 {0,-0.5,-0.5,1,0,1},
 	};
-	 //  std::vector<int> indices = { 0,1,2 };
+	   std::vector<int> indices = 
+	   { 
+		   0,1,2,
+		   0,3,1,
+		   2,1,3,
+		   2,3,0,
+	   };
+
 	 ID3D11Buffer* vBuffer = nullptr;
 	 ID3D11Buffer* indexBuffer = nullptr;
 	 dev.createVertexBuffer(vertices, vBuffer);
-	 //dev.createIndexBuffer(indices, indexBuffer);
-	 //devContext.bindIndexBuffer(indexBuffer);
+	 dev.createIndexBuffer(indices, indexBuffer);
+	 devContext.bindIndexBuffer(indexBuffer);
 	 devContext.bindVertexBuffer(vertices.data(), vBuffer);
 	 devContext.setTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	
@@ -92,9 +97,9 @@ int WinMain(
 
 
 	 ID3D11InputLayout* inputLayout;
-	 const D3D11_INPUT_ELEMENT_DESC idc[] =
+	 const D3D11_INPUT_ELEMENT_DESC idc[] =  // tell vshader what is in vertex buffer ?? ???  ? ?
 	 {
-		 {"POSITION",0,DXGI_FORMAT_R32G32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
+		 {"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
 		 {"COLOR",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0}
 	 };
 		 auto res = dev->CreateInputLayout(idc, std::size(idc), vertexShader.data(), vertexShader.getSize(), &inputLayout);  //TODO
@@ -106,10 +111,15 @@ int WinMain(
 			 dx::XMMATRIX transform;
 		 };
 
-		 ConstantBuffer transform = {dx::XMMatrixScaling(3 / 4.f,1,1) };
+		 ConstantBuffer transform = { dx::XMMatrixTranspose(dx::XMMatrixScaling(3 / 4.f,1,1)) };
+		 ID3D11Buffer* cBuffer;
+		 dev.createConstantBuffer(reinterpret_cast<void*>(& transform),sizeof(transform), cBuffer);
+		 devContext->VSSetConstantBuffers(0, 1, &cBuffer);  
 
 	Timer t;
 	MSG msg = { };
+
+	// main event loop
 	while (1)
 	{
 		PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE);
@@ -117,23 +127,26 @@ int WinMain(
 			DispatchMessage(&msg); // send messsage to windows function
 			if (msg.message == WM_QUIT)
 				break;
-
-		 ID3D11Buffer* cBuffer;
-		 dev.createConstantBuffer(reinterpret_cast<void*>(& transform),sizeof(transform), cBuffer);
-		 devContext->VSSetConstantBuffers(0, 1, &cBuffer);
+			 // graphics main loop
 			auto dt = t.peek();
-			transform = { dx::XMMatrixRotationZ(dt) * dx::XMMatrixScaling(3 / 4.f,1,1) };
+
 			devContext.ChangeColor(dev.getRenderTargetView().Get(), cos(dt), 0.5f, 0.2f);
-			devContext->Draw(vertices.size(), 0);  // not my wrapper TODO
+			devContext->DrawIndexed(indices.size(), 0, 0);
+
+			D3D11_MAPPED_SUBRESOURCE mappedCBuf = {};
+			devContext.mapResource(cBuffer, &mappedCBuf);
+			transform = { dx::XMMatrixTranspose(dx::XMMatrixRotationRollPitchYaw(dt,0,0) * dx::XMMatrixScaling(3 / 4.f ,1,1))};
+			memcpy(mappedCBuf.pData, &transform, sizeof(transform));
+			devContext.unmapResource(cBuffer);
+			
 			swapChain.finishDrawing();
-			cBuffer->Release();
 
 	}
 
-
+	cBuffer->Release();
 	vBuffer->Release();
 	inputLayout->Release();
-	//indexBuffer->Release();
+	indexBuffer->Release();
 
 
 
