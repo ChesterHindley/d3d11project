@@ -120,6 +120,9 @@ int WinMain(
 	MSG msg = { };
 
 	// main event loop
+	float xAngle = 0;
+	float yAngle = 0;
+	float zAngle = 0;
 	while (1)
 	{
 		PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE);
@@ -135,7 +138,22 @@ int WinMain(
 
 			D3D11_MAPPED_SUBRESOURCE mappedCBuf = {};
 			devContext.mapResource(cBuffer, &mappedCBuf);
-			transform = { dx::XMMatrixTranspose(dx::XMMatrixRotationRollPitchYaw(dt,0,0) * dx::XMMatrixScaling(3 / 4.f ,1,1))};
+			transform = { dx::XMMatrixTranspose(dx::XMMatrixRotationRollPitchYaw(xAngle,yAngle,zAngle) * dx::XMMatrixScaling(3 / 4.f ,1,1))};
+			if (w.kbd.isKeyPressed('S'))
+				xAngle += 0.05;
+			if (w.kbd.isKeyPressed('W'))
+				xAngle -= 0.05;
+			if (w.kbd.isKeyPressed('A'))
+				yAngle += 0.05;
+			if (w.kbd.isKeyPressed('D'))
+				yAngle -= 0.05;
+			if (w.kbd.isKeyPressed(' '))
+			{
+				xAngle = 0;
+				yAngle = 0;
+				zAngle = 0;
+			}
+
 			memcpy(mappedCBuf.pData, &transform, sizeof(transform));
 			devContext.unmapResource(cBuffer);
 			
