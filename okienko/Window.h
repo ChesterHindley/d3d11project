@@ -18,6 +18,8 @@ public:
 	Window(HINSTANCE, int height = -1, int width = -1);
 	Window(Window&) = delete;
 	HWND GetHwnd();
+	int getHeight();
+	int getWidth();
 	
 	Keyboard kbd;
 };

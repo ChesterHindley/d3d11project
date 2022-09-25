@@ -8,6 +8,7 @@
 #include "DEVICECONTEXT.h"
 #include "SWAPCHAIN.h"
 #include "SHADER.h"
+#include "Graphics.h"
 
 #pragma comment(lib,"D3D11.lib")
 
@@ -27,31 +28,10 @@ int WinMain(
 
 
 	Window w(hInstance,height,width);
+	Graphics gfx(w);
+
+
 	
-
-
-	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-
-	swapChainDesc.BufferDesc = { 0,0, {0,0}, DXGI_FORMAT_R8G8B8A8_UNORM,DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,DXGI_MODE_SCALING_UNSPECIFIED };
-	swapChainDesc.SampleDesc = { 1,0 };
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.Windowed = TRUE;
-	swapChainDesc.BufferCount = 1;
-	swapChainDesc.OutputWindow = w.GetHwnd();
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-	swapChainDesc.Flags = 0;
-
-	DEVICE dev;
-	DEVICECONTEXT devContext;
-	SWAPCHAIN swapChain;
-	auto check = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, D3D11_CREATE_DEVICE_DEBUG,NULL,0,D3D11_SDK_VERSION,&swapChainDesc,swapChain.GetAddressOf(), dev.GetAddressOf(), NULL, devContext.GetAddressOf());
-	
-	swapChain.initialiseBackBuffer();
-	
-	dev.CreateRenderTargetView(swapChain.getBackBuffer().Get());  //bruh what is this 
-
-	const FLOAT color[4] = { 0,0,0.5,1 }; // what is this for
-
 	struct Vertex { float x; float y; float z; float r; float g; float b; };
 	 std::vector<Vertex> vertices {
 		{-0.5,-0.5,0.5,1,0,0},
@@ -67,43 +47,38 @@ int WinMain(
 		   2,3,0,
 	   };
 
-	 ID3D11Buffer* vBuffer = nullptr;
-	 ID3D11Buffer* indexBuffer = nullptr;
-	 dev.createVertexBuffer(vertices, vBuffer);
-	 dev.createIndexBuffer(indices, indexBuffer);
-	 devContext.bindIndexBuffer(indexBuffer);
-	 devContext.bindVertexBuffer(vertices.data(), vBuffer);
-	 devContext.setTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	 
 	
+	   ID3D11Buffer* vBuffer = nullptr;
+	   ID3D11Buffer* indexBuffer = nullptr;
+	   gfx.dev.createVertexBuffer(vertices, vBuffer);
+	   gfx.dev.createIndexBuffer(indices, indexBuffer);
+	   gfx.devContext.bindIndexBuffer(indexBuffer);
+	   gfx.devContext.bindVertexBuffer(vertices.data(), vBuffer); 
+
+	   
+	 // load compiled shader bytecode
 	 SHADER<ID3D11VertexShader> vertexShader("VertexShader.cso");
 	 SHADER<ID3D11PixelShader> pixelShader("PixelShader.cso");
 
-	 dev->CreateVertexShader(vertexShader.data(), vertexShader.getSize(), nullptr, vertexShader.GetAddressOf());
-	 devContext->VSSetShader(vertexShader.getShader().Get(), nullptr, 0);
+	 gfx.dev->CreateVertexShader(vertexShader.data(), vertexShader.getSize(), nullptr, vertexShader.GetAddressOf());
+	 gfx.devContext->VSSetShader(vertexShader.getShader().Get(), nullptr, 0);
 
 	 
-	 dev->CreatePixelShader(pixelShader.data(), pixelShader.getSize(), nullptr, pixelShader.GetAddressOf());
-	 devContext->PSSetShader(pixelShader.getShader().Get(), nullptr, 0);
+	 gfx.dev->CreatePixelShader(pixelShader.data(), pixelShader.getSize(), nullptr, pixelShader.GetAddressOf());
+	 gfx.devContext->PSSetShader(pixelShader.getShader().Get(), nullptr, 0);
 	 
-	 devContext->OMSetRenderTargets(1, dev.getRenderTargetView().GetAddressOf(), nullptr);
-	 D3D11_VIEWPORT vp;
-	 vp.Width = width;
-	 vp.Height = height;
-	 vp.MinDepth = 0;
-	 vp.MaxDepth = 1;
-	 vp.TopLeftX = 0;
-	 vp.TopLeftY = 0;
-	 devContext->RSSetViewports(1u, &vp);
 
 
-	 ID3D11InputLayout* inputLayout;
+
+	 ID3D11InputLayout* inputLayout; // ye thats for vertex data https://learn.microsoft.com/en-us/windows/win32/api/d3d11/nn-d3d11-id3d11inputlayout
 	 const D3D11_INPUT_ELEMENT_DESC idc[] =  // tell vshader what is in vertex buffer ?? ???  ? ?
 	 {
 		 {"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
-		 {"COLOR",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0}
+		 {"COLOR",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0} // TODO unorm
 	 };
-		 auto res = dev->CreateInputLayout(idc, std::size(idc), vertexShader.data(), vertexShader.getSize(), &inputLayout);  //TODO
-		 devContext.bindInputLayout(inputLayout); 
+		 gfx.dev->CreateInputLayout(idc, std::size(idc), vertexShader.data(), vertexShader.getSize(), &inputLayout);  //TODO
+		 gfx.devContext.bindInputLayout(inputLayout); 
 
 
 		 struct ConstantBuffer
@@ -113,8 +88,8 @@ int WinMain(
 
 		 ConstantBuffer transform = { dx::XMMatrixTranspose(dx::XMMatrixScaling(3 / 4.f,1,1)) };
 		 ID3D11Buffer* cBuffer;
-		 dev.createConstantBuffer(reinterpret_cast<void*>(& transform),sizeof(transform), cBuffer);
-		 devContext->VSSetConstantBuffers(0, 1, &cBuffer);  
+		 gfx.dev.createConstantBuffer(reinterpret_cast<void*>(& transform),sizeof(transform), cBuffer);
+		 gfx.devContext->VSSetConstantBuffers(0, 1, &cBuffer);  
 
 	Timer t;
 	MSG msg = { };
@@ -123,7 +98,7 @@ int WinMain(
 	float xAngle = 0;
 	float yAngle = 0;
 	float zAngle = 0;
-	while (1)
+	while (true)
 	{
 		PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE);
 			TranslateMessage(&msg);
@@ -133,12 +108,12 @@ int WinMain(
 			 // graphics main loop
 			auto dt = t.peek();
 
-			devContext.ChangeColor(dev.getRenderTargetView().Get(), cos(dt), 0.5f, 0.2f);
-			devContext->DrawIndexed(indices.size(), 0, 0);
+			gfx.devContext.ChangeColor(gfx.dev.getRenderTargetView().Get(), 0, 0, 0);
+			gfx.devContext->DrawIndexed(indices.size(), 0, 0);
 
 			D3D11_MAPPED_SUBRESOURCE mappedCBuf = {};
-			devContext.mapResource(cBuffer, &mappedCBuf);
-			transform = { dx::XMMatrixTranspose(dx::XMMatrixRotationRollPitchYaw(xAngle,yAngle,zAngle) * dx::XMMatrixScaling(3 / 4.f ,1,1))};
+			gfx.devContext.mapResource(cBuffer, &mappedCBuf);
+			transform = { dx::XMMatrixTranspose(dx::XMMatrixRotationRollPitchYaw(xAngle,yAngle,zAngle) * dx::XMMatrixScaling(3 / 8.f ,1/2.f,1/2.f) * dx::XMMatrixTranslation(0,0,0.4f))};
 			if (w.kbd.isKeyPressed('S'))
 				xAngle += 0.05;
 			if (w.kbd.isKeyPressed('W'))
@@ -155,9 +130,9 @@ int WinMain(
 			}
 
 			memcpy(mappedCBuf.pData, &transform, sizeof(transform));
-			devContext.unmapResource(cBuffer);
+			gfx.devContext.unmapResource(cBuffer);
 			
-			swapChain.finishDrawing();
+			gfx.swapChain.finishDrawing();
 
 	}
 

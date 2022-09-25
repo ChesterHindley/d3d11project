@@ -59,6 +59,16 @@ HWND Window::GetHwnd()
 	return m_hwnd;
 }
 
+int Window::getHeight()
+{
+	return m_height;
+}
+
+int Window::getWidth()
+{
+	return m_width;
+}
+
 
 
 

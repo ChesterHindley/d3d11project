@@ -5,7 +5,7 @@ HRESULT SWAPCHAIN::initialiseBackBuffer()
 {
     static int check = 0;
     if (check) throw "reinitialised back buffer";  // possibly redundant code
-    return swapChain->GetBuffer(0, __uuidof(ID3D11Resource), &backBuffer) | ++check;
+    return swapChain->GetBuffer(0, __uuidof(ID3D11Resource), &backBuffer) | ++check;  //bruh what is this singleton enforcement
 }
 
  Microsoft::WRL::Details::ComPtrRef<Microsoft::WRL::ComPtr<IDXGISwapChain>> SWAPCHAIN::operator&()
